@@ -1,9 +1,30 @@
 import mysql.connector
-from db import get_db_connection
-import requests
+import os
 import re
-from fuzzywuzzy import fuzz  # Import fuzzy matching
-from fuzzywuzzy import process  # For finding the best match
+import requests
+import ollama
+from dotenv import load_dotenv
+from db import get_db_connection
+from fuzzywuzzy import fuzz, process
+import subprocess
+
+def ensure_ollama_running(model_name="llama3.2"):
+    """Ensure Ollama model is running by listing models and starting if needed."""
+    try:
+        # Check if the model is available locally
+        result = subprocess.run(["ollama", "list"], capture_output=True, text=True)
+        if model_name not in result.stdout:
+            print(f"Model '{model_name}' not found. Pulling from Ollama...")
+            subprocess.run(["ollama", "pull", model_name], check=True)
+
+        # Start the model in the background (non-blocking)
+        subprocess.Popen(["ollama", "run", model_name])
+        print(f"✅ Ollama model '{model_name}' started.")
+    except Exception as e:
+        print(f"❌ Failed to start Ollama model: {e}")
+
+
+load_dotenv()
 
 def normalize_text(text):
     """Normalize text by converting to lowercase and removing punctuation."""
@@ -12,10 +33,10 @@ def normalize_text(text):
 def get_best_matching_question(user_question, questions_list):
     """Finds the best matching question from the database using fuzzy matching."""
     best_match, score = process.extractOne(user_question, questions_list, scorer=fuzz.ratio)
-    return best_match if score > 70 else None  # Set a threshold (e.g., 70%)
+    return best_match if score > 70 else None
 
 def get_answer_from_db(question):
-    """Retrieve the answer for a given question from the database using fuzzy matching."""
+    """Retrieve the answer using fuzzy matching from questions and synonyms."""
     conn = None
     cursor = None
     try:
@@ -25,21 +46,37 @@ def get_answer_from_db(question):
 
         normalized_question = normalize_text(question)
 
-        # Get all stored questions from the database
+        # 1️⃣ Check questions table
         cursor.execute("SELECT id, question FROM questions")
         stored_questions = {row["id"]: normalize_text(row["question"]) for row in cursor.fetchall()}
-
-        # Find the best match
         best_match = get_best_matching_question(normalized_question, list(stored_questions.values()))
+
         if best_match:
-            question_id = [key for key, value in stored_questions.items() if value == best_match][0]
+            question_id = [qid for qid, text in stored_questions.items() if text == best_match][0]
             cursor.execute("SELECT answer FROM answers WHERE question_id = %s", (question_id,))
             result = cursor.fetchone()
             if result:
-                print(f"Found best match: {best_match} -> Answer: {result['answer']}")
+                print(f"Matched with question: {best_match}")
                 return result["answer"]
 
-        print("No close match found in DB.")
+        # 2️⃣ If no match, try the synonyms table
+        cursor.execute("""
+            SELECT s.question_id, s.synonym FROM synonyms s
+            JOIN questions q ON s.question_id = q.id
+        """)
+        synonyms = cursor.fetchall()
+        normalized_synonyms = {row["question_id"]: normalize_text(row["synonym"]) for row in synonyms}
+        best_syn_match = get_best_matching_question(normalized_question, list(normalized_synonyms.values()))
+
+        if best_syn_match:
+            syn_id = [sid for sid, text in normalized_synonyms.items() if text == best_syn_match][0]
+            cursor.execute("SELECT answer FROM answers WHERE question_id = %s", (syn_id,))
+            result = cursor.fetchone()
+            if result:
+                print(f"Matched with synonym: {best_syn_match}")
+                return result["answer"]
+
+        print("No match found in DB or synonyms.")
         return None
     except Exception as e:
         print(f"Error retrieving answer from DB: {e}")
@@ -50,25 +87,57 @@ def get_answer_from_db(question):
         if conn:
             conn.close()
 
+
+def generate_with_ollama(question):
+    """Generate a response using the Ollama LLM model."""
+    try:
+        ensure_ollama_running()  # <-- make sure it's running
+        print("Querying Ollama model...")
+        response = ollama.chat(model="llama3.2", messages=[{"role": "user", "content": question}])
+        answer = response.get("message", {}).get("content", "").strip()
+        if answer:
+            print("Ollama provided a response.")
+            return answer
+    except Exception as e:
+        print(f"Ollama error: {e}")
+    return None
+
+
 def fetch_from_rmu_website(question):
     """Attempts to fetch an answer from the RMU website."""
     try:
         print("Fetching answer from RMU website...")
-        r = requests.get("https://rmu.edu.gh/api/faq", params={"query": question}, timeout=5)
+        r = requests.get("https://rmu.edu.gh/frequently-asked-questions/", params={"query": question}, timeout=5)
         if r.status_code == 200:
             data = r.json()
-            if data.get("answer"):
-                print(f"RMU API response: {data['answer']}")
-                return data["answer"]
+            answer = data.get("answer")
+            if answer:
+                print("Found answer from RMU site.")
+                return answer
     except Exception as e:
-        print(f"Error fetching from RMU website: {e}")
+        print(f"RMU fallback failed: {e}")
     return None
 
-def get_chatbot_response(question):
-    """Main function to handle chatbot logic."""
+def log_usage_event(session_id, event_type, description):
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            "INSERT INTO usage_logs (session_id, event_type, event_description) VALUES (%s, %s, %s)",
+            (session_id, event_type, description)
+        )
+        conn.commit()
+    except Exception as e:
+        print(f"Failed to log usage event: {e}")
+    finally:
+        cursor.close()
+        conn.close()
+
+
+def get_chatbot_response(question, session_id=None):
+    """Main function to handle chatbot logic with multiple fallbacks."""
     print(f"User asked: {question}")
 
-    # Define common greetings and responses
     greetings = {
         "hi": "Hello! How can I assist you today?",
         "hello": "Hi there! How can I help?",
@@ -76,23 +145,34 @@ def get_chatbot_response(question):
         "good morning": "Good morning! How can I assist you?",
         "good afternoon": "Good afternoon! Need any help?",
         "good evening": "Good evening! Feel free to ask me anything.",
+        "what's up": "Not much! Just here to help. What do you need assistance with?",
+        "how are you": "I'm just a chatbot, but I'm here and ready to help!",
+        "who are you": "I'm RMU's virtual assistant, here to answer your RMU-related questions!",
+        "can you help me": "Of course! Let me know what you need help with.",
+        "thank you": "You're welcome! Let me know if you need anything else.",
+        "thanks": "You're welcome! Let me know if you need anything else.",
+        "bye": "Goodbye! Have a great day!",
+        "goodbye": "Goodbye! Have a great day!",
+        "see you later": "See you later! Don't hesitate to ask if you need help again."
     }
 
-    # Normalize input (lowercase) and check if it's a greeting
     normalized_question = normalize_text(question)
     for greet in greetings:
-        if normalized_question.startswith(greet):
+        if greet in normalized_question:
             return greetings[greet]
 
-    # Try to fetch from DB first using fuzzy matching
     answer = get_answer_from_db(question)
     if answer:
         return answer
 
-    # If not in DB, try fetching from RMU website
-    answer = fetch_from_rmu_website(question)
+    answer = generate_with_ollama(question)
     if answer:
         return answer
 
-    # Final fallback
-    return "I'm sorry, I couldn't find the answer. Please visit [RMU Website](https://rmu.edu.gh) for more information."
+    answer = fetch_from_rmu_website(question)
+    if answer:
+        return answer
+    
+    if session_id:
+        log_usage_event(session_id, "unmatched_question", question)
+    return "I'm sorry, I couldn't find the answer. Please contact university.registrar@rmu.edu.gh for further assistance."

@@ -1,0 +1,95 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background: #f0f8ff;
+}
+  
+.admin-header {
+background: #0047ab;
+color: white;
+padding: 15px 30px;
+display: flex;
+justify-content: space-between;
+align-items: center;
+}
+
+.admin-header .logo {
+display: flex;
+align-items: center;
+gap: 15px;
+}
+
+.admin-header img {
+height: 40px;
+}
+
+.admin-container {
+display: flex;
+min-height: 90vh;
+}
+
+.admin-sidebar {
+width: 220px;
+background: #ffffff;
+border-right: 1px solid #ddd;
+padding: 20px 0;
+}
+
+.admin-sidebar ul {
+list-style: none;
+padding: 0;
+}
+
+.admin-sidebar li {
+padding: 10px 20px;
+}
+
+.admin-sidebar a {
+text-decoration: none;
+color: #0047ab;
+font-weight: bold;
+}
+
+.admin-sidebar a:hover {
+color: #003080;
+}
+
+.admin-main {
+flex: 1;
+padding: 30px;
+background: #fff;
+}
+
+.dashboard-cards {
+display: grid;
+grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+gap: 20px;
+margin-top: 20px;
+}
+
+.card {
+background: #ffffff;
+padding: 20px;
+border-radius: 10px;
+box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+text-decoration: none;
+color: #0047ab;
+transition: 0.3s;
+border-left: 6px solid #0047ab;
+}
+
+.card:hover {
+background: #f0f8ff;
+transform: scale(1.03);
+}
+
+.card h3 {
+margin-bottom: 10px;
+font-size: 1.2em;
+}
+
+.card p {
+font-size: 1.5em;
+font-weight: bold;
+}
