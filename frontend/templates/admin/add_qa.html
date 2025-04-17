@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Add Q&A - Admin</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='admin.css') }}">
+</head>
+<body>
+
+  <header class="admin-header">
+    <div class="logo">
+      <img src="https://rmu.edu.gh/wp-content/uploads/2019/09/rmulogo-exp-3.png" alt="RMU Logo" />
+      <h2>Admin Panel</h2>
+    </div>
+    <div class="admin-user">
+      Logged in as <strong>{{ session.username }}</strong> |
+      <a href="/logout">Logout</a>
+    </div>
+  </header>
+
+  <div class="admin-container">
+    <nav class="admin-sidebar">
+      <ul>
+        <li><a href="{{ url_for('admin_dashboard') }}">📊 Dashboard</a></li>
+        <li><a href="{{ url_for('qa_manager') }}">❓ Q&A Management</a></li>
+        <li><a href="/admin/feedback">💬 Feedback</a></li>
+        <li><a href="/admin/chats">📂 Chat Logs</a></li>
+        <li><a href="/admin/users">👥 Users</a></li>
+      </ul>
+    </nav>
+
+    <main class="admin-main">
+      <h2>Add New Question & Answer</h2>
+
+      <form action="{{ url_for('add_qa') }}" method="POST" class="qa-form">
+        <label for="intent_id">Intent:</label>
+        <select name="intent_id" id="intent_id" required>
+          <option value="">-- Select Intent --</option>
+          {% for intent in intents %}
+            <option value="{{ intent.id }}">{{ intent.name }}</option>
+          {% endfor %}
+        </select>
+
+        <label for="question">Question:</label>
+        <input type="text" name="question" id="question" required placeholder="Enter the question">
+
+        <label for="answer">Answer:</label>
+        <textarea name="answer" id="answer" required placeholder="Enter the answer"></textarea>
+
+        <label for="synonyms">Synonyms (optional, comma-separated):</label>
+        <input type="text" name="synonyms" id="synonyms" placeholder="e.g. hi, hey, hello">
+
+        <button type="submit" class="btn-primary">➕ Add Q&A</button>
+        <a href="{{ url_for('qa_manager') }}" class="back-link">← Back to Q&A List</a>
+      </form>
+    </main>
+  </div>
+
+</body>
+</html>

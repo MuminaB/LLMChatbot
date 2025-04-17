@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Q&A Manager - RMU Chatbot Admin</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='admin.css') }}">
+
+</head>
+<body>
+  <header class="admin-header">
+    <div class="logo">
+      <img src="https://rmu.edu.gh/wp-content/uploads/2019/09/rmulogo-exp-3.png" alt="RMU Logo" />
+    </div>
+    <div>
+      <h2>Q&A Management</h2>
+    </div>
+    <div class="admin-user">
+      Logged in as <strong>{{ session.username }}</strong> |
+      <a href="/logout">Logout</a>
+    </div>
+  </header>
+
+  <main class="admin-main">
+    <h3>All Questions & Answers</h3>
+    <div class="two-links">
+        <a href="{{ url_for('admin_dashboard') }}" class="back-link">← Back to Dashboard</a>  
+        <a class="btn" href="/admin/qa/add">+ Add New Q&A</a>
+    </div>
+    <table class="qa-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Question</th>
+          <th>Answer</th>
+          <th>Intent</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in qa_list %}
+        <tr>
+          <td>{{ row.id }}</td>
+          <td>{{ row.question }}</td>
+          <td>{{ row.answer }}</td>
+          <td>{{ row.intent }}</td>
+          <td>
+            <a href="/admin/qa/edit/{{ row.id }}">Edit</a> |
+            <a href="{{ url_for('delete_qa', question_id=row.id) }}" onclick="return confirm('Delete this?')">Delete</a>
+
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    
+  </main>
+</body>
+</html>
