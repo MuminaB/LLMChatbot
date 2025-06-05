@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>File Preview: {{ filename }}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='admin.css') }}">
+  <style>
+    .file-box {
+      max-width: 900px;
+      margin: 40px auto;
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    pre {
+      white-space: pre-wrap;
+      word-break: break-word;
+      background: #f5f5f5;
+      padding: 12px;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+    h2 {
+      color: #0047ab;
+    }
+    .back-btn {
+      margin-top: 20px;
+      display: inline-block;
+      background: #0047ab;
+      color: white;
+      padding: 8px 14px;
+      text-decoration: none;
+      border-radius: 6px;
+    }
+  </style>
+</head>
+<body>
+<div class="file-box">
+  <h2>Preview: {{ filename }}</h2>
+  {% if lines %}
+    <pre>{{ lines | join('\n\n') }}</pre>
+  {% else %}
+    <p>No readable content found.</p>
+  {% endif %}
+  <a href="{{ url_for('upload_dataset') }}" class="back-btn">⬅ Back to Upload</a>
+</div>
+</body>
+</html>

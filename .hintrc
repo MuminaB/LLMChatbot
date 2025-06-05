@@ -3,6 +3,20 @@
     "development"
   ],
   "hints": {
-    "meta-viewport": "off"
-  }
+    "disown-opener": "off",
+    "meta-viewport": "off",
+    "no-inline-styles": "off",
+    "axe/forms": [
+      "default",
+      {
+        "label": "off"
+      }
+    ]
+  },
+  "browserslist": [
+    "defaults",
+    "not ie 11",
+    "not ios_saf <= 18",
+    "not safari <= 18"
+  ]
 }

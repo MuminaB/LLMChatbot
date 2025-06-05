@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Feedback Logs</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='admin.css') }}">
+    <style>
+        .rating-5 { background-color: #e6ffe6; }
+        .rating-4 { background-color: #f0fff0; }
+        .rating-3 { background-color: #fffbe6; }
+        .rating-2 { background-color: #fff0f0; }
+        .rating-1 { background-color: #ffe6e6; }
+        th.sortable:hover {
+            cursor: pointer;
+            text-decoration: underline;
+        }
+        .filter-section {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+<div class="admin-container">
+    <aside class="sidebar">
+        <h2>Admin Panel</h2>
+        <ul>
+            <li><a href="{{ url_for('admin_dashboard') }}">Dashboard</a></li>
+            <li><a href="{{ url_for('view_qa') }}">Training Dataset</a></li>
+            <li><a href="{{ url_for('view_chat_history') }}">Chat History</a></li>
+            <li><a href="{{ url_for('upload_dataset') }}" >Upload Training Data</a></li>
+            <li><a href="{{ url_for('view_feedbacks') }}" class="active">Feedback Logs</a></li>
+            <li><a href="{{ url_for('view_memory') }}">Corrections</a></li>
+            <li><a href="{{ url_for('home') }}">Back to Bot</a></li>
+        </ul>
+    </aside>
+
+    <main class="dashboard-content">
+        <header>
+            <h1>User Feedback Logs</h1>
+           
+        </header>
+
+        <div class="filter-section">
+            <label for="rating-filter" style="font-weight: bold;"> Filter by Rating:</label>
+            <select id="rating-filter" onchange="filterByRating()" style="padding: 8px 12px; border-radius: 6px; border: 1px solid #ccc;">
+                <option value="all">All Ratings</option>
+                <option value="5">5 Stars</option>
+                <option value="4">4 Stars</option>
+                <option value="3">3 Stars</option>
+                <option value="2">2 Stars</option>
+                <option value="1">1 Star</option>
+            </select>
+
+            <button onclick="downloadFilteredFeedbacks()" class="btn" style="background: linear-gradient(to right, #0047ab); color: white; padding: 10px 18px; border-radius: 8px; border: none; cursor: pointer; box-shadow: 0 2px 6px rgba(0, 71, 171, 0.2); font-weight: bold;">
+                Download 
+            </button>
+        </div>
+
+        <table id="feedbacks-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th class="sortable" onclick="sortTable(1)">Rating ▲▼</th>
+                    <th>Comment</th>
+                    <th>Submitted At</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for feedback in feedbacks %}
+                <tr class="rating-{{ feedback.rating }}">
+                    <td>{{ loop.index }}</td>
+                    <td>{{ feedback.rating }}</td>
+                    <td>{{ feedback.comment if feedback.comment else '—' }}</td>
+                    <td>{{ feedback.submitted_at }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </main>
+</div>
+
+<script>
+    // Sort Table by Column
+    function sortTable(colIndex) {
+        var table = document.getElementById("feedbacks-table");
+        var rows = Array.from(table.rows).slice(1);
+        var ascending = table.getAttribute("data-sort-asc") !== "true";
+    
+        rows.sort(function(a, b) {
+            var aText = a.cells[colIndex].innerText.trim();
+            var bText = b.cells[colIndex].innerText.trim();
+            return ascending ? bText - aText : aText - bText;
+        });
+    
+        for (var row of rows) {
+            table.tBodies[0].appendChild(row);
+        }
+    
+        table.setAttribute("data-sort-asc", ascending);
+    }
+    
+    // Filter Feedbacks by Rating
+    function filterByRating() {
+        var filter = document.getElementById('rating-filter').value;
+        var table = document.getElementById('feedbacks-table');
+        var rows = table.getElementsByTagName('tr');
+    
+        for (let i = 1; i < rows.length; i++) {
+            const ratingCell = rows[i].cells[1];
+            if (!ratingCell) continue; // Skip if no rating
+    
+            const rating = ratingCell.innerText.trim();
+            if (filter === "all" || rating === filter) {
+                rows[i].style.display = "";
+            } else {
+                rows[i].style.display = "none";
+            }
+        }
+    }
+    
+    // Download Only Visible (Filtered) Feedbacks
+    function downloadFilteredFeedbacks() {
+        var table = document.getElementById('feedbacks-table');
+        var rows = table.getElementsByTagName('tr');
+    
+        let filteredFeedbacks = [];
+    
+        for (let i = 1; i < rows.length; i++) {
+            if (rows[i].style.display !== "none") {
+                let rating = rows[i].cells[1].innerText.trim();
+                let comment = rows[i].cells[2].innerText.trim();
+                let submittedAt = rows[i].cells[3].innerText.trim();
+    
+                filteredFeedbacks.push({
+                    rating: parseInt(rating),
+                    comment: comment === "—" ? "" : comment,
+                    submitted_at: submittedAt
+                });
+            }
+        }
+    
+        if (filteredFeedbacks.length === 0) {
+            alert('⚠️ No feedbacks match this filter!');
+            return;
+        }
+    
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const timestamp = `${year}-${month}-${day}`;
+    
+        const filename = `filtered_feedbacks_${timestamp}.json`;
+    
+        const blob = new Blob([JSON.stringify(filteredFeedbacks, null, 2)], { type: 'application/json' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = filename;
+        link.click();
+    }
+    
+    // Convert Timestamps to 'X Days Ago' Format
+    function timeAgo(dateString) {
+        const now = new Date();
+        const past = new Date(dateString);
+        const secondsAgo = Math.floor((now - past) / 1000);
+    
+        const intervals = [
+            { label: 'year', seconds: 31536000 },
+            { label: 'month', seconds: 2592000 },
+            { label: 'day', seconds: 86400 },
+            { label: 'hour', seconds: 3600 },
+            { label: 'minute', seconds: 60 },
+            { label: 'second', seconds: 1 }
+        ];
+    
+        for (const interval of intervals) {
+            const count = Math.floor(secondsAgo / interval.seconds);
+            if (count > 0) {
+                return `${count} ${interval.label}${count !== 1 ? 's' : ''} ago`;
+            }
+        }
+        return "just now";
+    }
+    
+    // Auto-format Submitted At Columns
+    window.onload = function() {
+        const table = document.getElementById('feedbacks-table');
+        const rows = table.getElementsByTagName('tr');
+    
+        for (let i = 1; i < rows.length; i++) {
+            const cell = rows[i].cells[3];
+            if (cell) {
+                const originalDate = cell.innerText.trim();
+                if (originalDate) {
+                    cell.innerText = timeAgo(originalDate);
+                }
+            }
+        }
+    }
+    </script>
+    
+
+</body>
+</html>

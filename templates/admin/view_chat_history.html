@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Chat History Viewer</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='admin.css') }}">
+    <style>
+        .expand-btn {
+            background: linear-gradient(to right, #0047ab, #005fff);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .chat-messages {
+            background: #f9f9f9;
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+            display: none;
+            border: 1px solid #ccc;
+        }
+        .message-user {
+            background: #0047ab;
+            color: white;
+            padding: 8px;
+            border-radius: 12px;
+            margin-bottom: 5px;
+            max-width: 70%;
+        }
+        .message-bot {
+            background: #e2e2e2;
+            color: #000;
+            padding: 8px;
+            border-radius: 12px;
+            margin-bottom: 5px;
+            max-width: 70%;
+        }
+    </style>
+</head>
+<body>
+
+<div class="admin-container">
+    <aside class="sidebar">
+        <h2>Admin Panel</h2>
+        <ul>
+            <li><a href="{{ url_for('admin_dashboard') }}">Dashboard</a></li>
+            <li><a href="{{ url_for('view_qa') }}">Training Dataset</a></li>
+            <li><a href="{{ url_for('view_chat_history') }}" class="active">Chat History</a></li>
+            <li><a href="{{ url_for('upload_dataset') }}" >Upload Training Data</a></li>
+            <li><a href="{{ url_for('view_feedbacks') }}">Feedback Logs</a></li>
+            <li><a href="{{ url_for('view_memory') }}">Corrections</a></li>
+            <li><a href="{{ url_for('home') }}">Back to Bot</a></li>
+        </ul>
+    </aside>
+
+    <main class="dashboard-content">
+        <header>
+            <h1>Chat Session History</h1>
+            
+        </header>
+        <div style="margin-bottom: 15px;">
+            <a href="{{ url_for('view_archived_sessions') }}" class="expand-btn" style="background: gray;">View Archived Chats</a>
+        </div>
+
+        <table id="chat-history-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Session Name</th>
+                    <th>Date</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for session in sessions %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ session.session_name }}</td>
+                    <td>{{ session.created_at }}</td>
+                    <td>
+                        <button class="expand-btn" onclick="toggleChat({{ session.id }}, this)">Expand</button>
+                        <form method="POST" action="{{ url_for('archive_session', session_id=session.id) }}" style="display:inline;" onsubmit="return confirm('Archive this chat?');">
+                            <button type="submit" class="expand-btn" style="background: blue; margin-left: 8px;">Archive</button>
+                        </form>
+                        <div id="chat-{{ session.id }}" class="chat-messages"></div>
+                    </td>
+
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+
+    </main>
+</div>
+
+<script>
+function toggleChat(sessionId, button) {
+    const chatDiv = document.getElementById(`chat-${sessionId}`);
+
+    if (chatDiv.style.display === "block") {
+        chatDiv.style.display = "none";
+        button.innerText = "Expand";
+    } else {
+        // Only fetch if not already loaded
+        if (chatDiv.innerHTML.trim() === "") {
+            fetch(`/admin/load-session/${sessionId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    chatDiv.innerHTML = "<p>❌ Error loading session.</p>";
+                } else {
+                    chatDiv.innerHTML = data.map(msg => {
+                        if (msg.role === "user") {
+                            return `<div class="message-user">${msg.content}</div>`;
+                        } else {
+                            return `<div class="message-bot">${msg.content}</div>`;
+                        }
+                    }).join('');
+                }
+            });
+        }
+        chatDiv.style.display = "block";
+        button.innerText = "Collapse";
+    }
+}
+</script>
+
+</body>
+</html>

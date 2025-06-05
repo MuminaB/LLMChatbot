@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Upload Training Dataset</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='admin.css') }}">
+    <style>
+        .upload-form {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            max-width: 500px;
+            margin: 40px auto;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .upload-form input[type="file"] {
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+        }
+        .upload-form button {
+            background: linear-gradient(to right, #0047ab, #005fff);
+            color: white;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 16px;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0, 71, 171, 0.2);
+        }
+    </style>
+</head>
+<body>
+
+<div class="admin-container">
+    <aside class="sidebar">
+        <h2>Admin Panel</h2>
+        <ul>
+            <li><a href="{{ url_for('admin_dashboard') }}">Dashboard</a></li>
+            <li><a href="{{ url_for('view_qa') }}">Training Dataset</a></li>
+            <li><a href="{{ url_for('view_chat_history') }}">Chat History</a></li>
+            <li><a href="{{ url_for('upload_dataset') }}" class="active">Upload Training Data</a></li>
+            <li><a href="{{ url_for('view_feedbacks') }}">Feedback Logs</a></li>
+            <li><a href="{{ url_for('view_memory') }}">Corrections</a></li>
+            <li><a href="{{ url_for('home') }}">Back to Bot</a></li>
+        </ul>
+    </aside>
+
+    <main class="dashboard-content">
+        <header>
+            <h1>Upload New Training Dataset</h1>
+           
+        </header>
+
+        <form method="POST" enctype="multipart/form-data" class="upload-form">
+            <input type="file" name="dataset" required>
+            <button type="submit"> Upload Dataset</button>
+        </form>
+        <h2 style="margin-top: 40px;">Uploaded Files</h2>
+        <table style="width: 100%; border-collapse: collapse; background: white;">
+        <thead>
+            <tr style="background: #0047ab; color: white;">
+            <th>#</th>
+            <th>File Name</th>
+            <th>Size (KB)</th>
+            <th>Uploaded At</th>
+            <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for file in files %}
+            <tr>
+            <td>{{ loop.index }}</td>
+            <td>{{ file.filename }}</td>
+            <td>{{ file.size_kb }}</td>
+            <td>{{ file.uploaded_at }}</td>
+            <td>
+                <a href="{{ url_for('view_uploaded_file', filename=file.filename) }}" target="_blank"
+                    style="color: white; background: #0047ab; padding: 6px 10px; border-radius: 5px; text-decoration: none;">View</a>
+            </td>
+        </tr>
+            
+            {% endfor %}
+        </tbody>
+        </table>
+
+    </main>
+</div>
+
+</body>
+</html>
