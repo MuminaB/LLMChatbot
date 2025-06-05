@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Uploaded Files</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='admin.css') }}">
+  <style>
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      background: white;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 10px;
+    }
+    th {
+      background: #0047ab;
+      color: white;
+    }
+    .back-btn {
+      margin: 15px 0;
+      padding: 8px 14px;
+      background: #0047ab;
+      color: white;
+      text-decoration: none;
+      border-radius: 6px;
+    }
+  </style>
+</head>
+<body>
+<div class="admin-container">
+  <aside class="sidebar">
+    <h2>Admin Panel</h2>
+    <ul>
+      <li><a href="{{ url_for('admin_dashboard') }}">Dashboard</a></li>
+      <li><a href="{{ url_for('view_qa') }}">Training Dataset</a></li>
+      <li><a href="{{ url_for('view_chat_history') }}">Chat History</a></li>
+      <li><a href="{{ url_for('upload_dataset') }}">Upload Training Data</a></li>
+      <li><a href="{{ url_for('view_uploaded_files') }}" class="active">Uploaded Files</a></li>
+      <li><a href="{{ url_for('view_feedbacks') }}">Feedback Logs</a></li>
+      <li><a href="{{ url_for('view_memory') }}">Corrections</a></li>
+      <li><a href="{{ url_for('home') }}">Back to Bot</a></li>
+    </ul>
+  </aside>
+
+  <main class="dashboard-content">
+    <header>
+      <h1>Uploaded Training Files</h1>
+    </header>
+
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>File Name</th>
+          <th>Size (KB)</th>
+          <th>Uploaded At</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for file in files %}
+        <tr>
+          <td>{{ loop.index }}</td>
+          <td>{{ file.filename }}</td>
+          <td>{{ file.size_kb }}</td>
+          <td>{{ file.uploaded_at }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <a href="{{ url_for('upload_dataset') }}" class="back-btn">⬅️ Back to Upload</a>
+  </main>
+</div>
+</body>
+</html>

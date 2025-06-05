@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Archived Chat Sessions</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='admin.css') }}">
+  <style>
+    .expand-btn {
+      background: #6c757d;
+      color: white;
+      padding: 6px 12px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .chat-messages {
+      background: #f0f0f0;
+      padding: 10px;
+      margin-top: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      display: none;
+    }
+    .message-user {
+      background: #0047ab;
+      color: white;
+      padding: 8px;
+      margin-bottom: 5px;
+      border-radius: 10px;
+    }
+    .message-bot {
+      background: #dcdcdc;
+      padding: 8px;
+      margin-bottom: 5px;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body>
+<div class="admin-container">
+  <aside class="sidebar">
+    <h2>Admin Panel</h2>
+    <ul>
+      <li><a href="{{ url_for('admin_dashboard') }}">Dashboard</a></li>
+      <li><a href="{{ url_for('view_qa') }}">Training Dataset</a></li>
+      <li><a href="{{ url_for('view_chat_history') }}">Chat History</a></li>
+      <li><a href="{{ url_for('view_archived_sessions') }}" class="active">Archived Chats</a></li>
+      <li><a href="{{ url_for('upload_dataset') }}">Upload Training Data</a></li>
+      <li><a href="{{ url_for('view_feedbacks') }}">Feedback Logs</a></li>
+      <li><a href="{{ url_for('view_memory') }}">Corrections</a></li>
+      <li><a href="{{ url_for('home') }}">Back to Bot</a></li>
+    </ul>
+  </aside>
+
+  <main class="dashboard-content">
+    <header>
+      <h1>Archived Chat Sessions</h1>
+    </header>
+    <div style="margin-bottom: 15px;">
+        <a href="{{ url_for('view_chat_history') }}" class="expand-btn" style="background: #0047ab;">🔙 Back to Active Chats</a>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Session Name</th>
+          <th>Date</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for session in sessions %}
+        <tr>
+          <td>{{ loop.index }}</td>
+          <td>{{ session.session_name }}</td>
+          <td>{{ session.created_at }}</td>
+          <td>
+            <button class="expand-btn" onclick="toggleChat({{ session.id }}, this)">Expand</button>
+            <form method="POST" action="{{ url_for('restore_session', session_id=session.id) }}" onsubmit="return confirm('Restore this chat?');" style="display:inline;">
+                <button type="submit" class="expand-btn" style="background: green; margin-left: 8px;">Restore</button>
+            </form>
+
+            <div id="chat-{{ session.id }}" class="chat-messages"></div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </main>
+</div>
+
+<script>
+function toggleChat(sessionId, button) {
+  const chatDiv = document.getElementById(`chat-${sessionId}`);
+
+  if (chatDiv.style.display === "block") {
+    chatDiv.style.display = "none";
+    button.innerText = "Expand";
+  } else {
+    if (chatDiv.innerHTML.trim() === "") {
+      fetch(`/admin/load-session/${sessionId}`)
+        .then(res => res.json())
+        .then(data => {
+          chatDiv.innerHTML = data.map(msg => {
+            if (msg.role === "user") {
+              return `<div class="message-user">${msg.content}</div>`;
+            } else {
+              return `<div class="message-bot">${msg.content}</div>`;
+            }
+          }).join('');
+        });
+    }
+    chatDiv.style.display = "block";
+    button.innerText = "Collapse";
+  }
+}
+</script>
+</body>
+</html>

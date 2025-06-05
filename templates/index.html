@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>RMU Chatbot</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="chat-header">
+    <div class="logo-area">
+      <div>
+        <img src="https://rmu.edu.gh/wp-content/uploads/2019/09/rmulogo-exp-3.png" alt="University Logo">
+      </div>
+    </div>
+    <nav>
+      <ul>
+        <li><a href="https://rmu.edu.gh/">Home</a></li>
+        <li><a href="https://rmu.edu.gh/contact">Contact</a></li>
+        <li><a href="#" id="profile-btn" class="profile-link">Profile</a></li>
+        <li><a href="#" id="history-btn">History</a></li>
+      </ul>
+    </nav>
+    <div id="profile-menu" class="profile-dropdown">
+      <div class="profile-info">
+        <strong>{{ session.get('student_name', 'Guest') }}</strong><br>
+        <small>{{ session.get('student_email', 'student@st.rmu.edu.gh') }}</small>
+      </div>
+      <hr>
+      <a href="/logout">Logout</a>
+    </div>
+  </header>
+
+  <!-- MAIN CHAT LAYOUT -->
+  <main>
+    <div id="chat-layout">
+      <!-- Sidebar (initially hidden via style) -->
+      <aside id="chat-sidebar" class="sidebar" style="display: none;">
+        <span class="close-btn" onclick="toggleSidebar()">×</span>
+        <h3>Chat History</h3>
+        <ul id="chat-history-list"></ul>
+      </aside>
+
+      <!-- Chat Panel -->
+      <section id="chat-container">
+        <div id="chat-window">
+          <div id="chat-messages"></div>
+        </div>
+        <p style="font-size: 13px; color: #666; margin-top: 8px;">
+          <em>Your conversation may be reviewed by authorized university staff to improve chatbot accuracy and support services.</em>
+        </p>
+
+        <div id="chat-controls">
+          <textarea id="user-input" rows="2" placeholder="Type your message..." style="resize: none;"></textarea>
+        </div>
+
+        <div id="chat-buttons">
+          <button id="send-btn">Send</button>
+          <button id="new-chat">New Chat</button>
+          <button id="clear-history">Clear History</button>
+          <button id="export-chat">Export Chat</button>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- FEEDBACK SECTION -->
+  <div id="feedback-section">
+    <h3>Feedback</h3>
+    <label for="rating">Rate our chatbot:</label>
+    <select id="rating">
+      <option value="5">5 - Excellent</option>
+      <option value="4">4 - Good</option>
+      <option value="3">3 - Average</option>
+      <option value="2">2 - Poor</option>
+      <option value="1">1 - Bad</option>
+    </select>
+    <textarea id="feedback" placeholder="Leave your comments..."></textarea>
+    <button id="submit-feedback">Submit Feedback</button>
+  </div>
+
+  <!-- GUEST LIMIT MODAL -->
+  <div id="limit-modal" class="modal">
+    <div class="modal-content">
+      <h3>⚠️ Limit Reached</h3>
+      <p>You’ve reached the maximum number of allowed messages as a guest.</p>
+      <button onclick="window.location.href='/signup'">Sign Up</button>
+      <button onclick="closeModal()">Cancel</button>
+    </div>
+  </div>
+
+  <noscript>
+    <p style="text-align: center; color: red;">JavaScript is required to use this chatbot. Please enable it in your browser.</p>
+  </noscript>
+  <script>
+    sessionStorage.setItem("student_id", "{{ student_id or '' }}");
+    sessionStorage.setItem("guest_id", "{{ guest_id or '' }}");
+  </script>
+
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

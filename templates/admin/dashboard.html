@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Dashboard</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='admin.css') }}">
+</head>
+<body>
+<div class="admin-container">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <h2>Admin Panel</h2>
+    <ul>
+      <li><a href="{{ url_for('admin_dashboard') }}" class="active">Dashboard</a></li>
+      <li><a href="{{ url_for('view_qa') }}">Training Dataset</a></li>
+      <li><a href="{{ url_for('view_chat_history') }}">Chat History</a></li>
+      <li><a href="{{ url_for('upload_dataset') }}" >Upload Training Data</a></li>
+      <li><a href="{{ url_for('view_feedbacks') }}">Feedback Logs</a></li>
+      <li><a href="{{ url_for('view_memory') }}">Corrections</a></li>
+      <li><a href="{{ url_for('home') }}">Back to Bot</a></li>
+    </ul>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="dashboard-content">
+    <header>
+        <h1>Admin Dashboard</h1>
+        
+    </header>
+
+    <section class="quick-stats">
+      <a href="#" class="stat-box">
+          <h3>Total Training Samples</h3>
+          <p>{{ "{:,}".format(sample_count) }}</p>
+      </a>
+
+      <a href="#" class="stat-box">
+          <h3>Last Dataset Update</h3>
+          <p>{{ last_updated }}</p>
+      </a>
+
+      <a href="#" class="stat-box">
+          <h3>Total Feedbacks</h3>
+          <p>{{ feedback_count }}</p>
+      </a>
+
+      <a href="#" class="stat-box">
+          <h3>Average Rating</h3>
+          <p>{{ avg_rating }}</p>
+      </a>
+  </section>
+</main>
+
+
+</div>
+</body>
+</html>

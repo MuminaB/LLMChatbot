@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Upload Successful</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='admin.css') }}">
+  <style>
+    .success-box {
+      max-width: 500px;
+      margin: 60px auto;
+      background: #f0f9ff;
+      padding: 30px;
+      border-radius: 12px;
+      text-align: center;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+    }
+    h2 {
+      color: #0047ab;
+    }
+    .back-btn {
+      margin-top: 20px;
+      padding: 10px 20px;
+      background: #0047ab;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="success-box">
+    <h2>Upload Successful</h2>
+    <p><strong>File Name:</strong> {{ filename }}</p>
+    <p><strong>Total Entries Detected:</strong> {{ entry_count }}</p>
+
+    <a href="{{ url_for('upload_dataset') }}" class="back-btn">Upload Another File</a>
+  </div>
+</body>
+</html>

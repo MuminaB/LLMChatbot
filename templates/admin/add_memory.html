@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Add Chatbot Memory</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='admin.css') }}">
+  <style>
+    .form-container {
+      max-width: 600px;
+      margin: 30px auto;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    label { display: block; margin-top: 10px; font-weight: bold; }
+    input, textarea {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+    button {
+      margin-top: 15px;
+      background: #0047ab;
+      color: white;
+      padding: 10px 15px;
+      border: none;
+      border-radius: 6px;
+    }
+  </style>
+</head>
+<body>
+  <div class="form-container">
+    <h2>Add New Memory Correction</h2>
+    <form method="POST">
+      <label for="question">Corrected Question</label>
+      <input type="text" name="question" required>
+
+      <label for="answer">Corrected Answer</label>
+      <textarea name="answer" rows="6" required></textarea>
+
+      <button type="submit">Save Correction</button>
+    </form>
+  </div>
+</body>
+</html>

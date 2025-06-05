@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Add New Conversation</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='admin.css') }}">
+</head>
+<body>
+<div class="admin-container">
+    <aside class="sidebar">
+        <h2>Admin Panel</h2>
+        <ul>
+            <li><a href="{{ url_for('admin_dashboard') }}">Dashboard</a></li>
+            <li><a href="{{ url_for('view_qa') }}" class="active">Training Dataset</a></li>
+            <li><a href="{{ url_for('view_chat_history') }}">Chat History</a></li>
+            <li><a href="{{ url_for('upload_dataset') }}" >Upload Training Data</a></li>
+            <li><a href="{{ url_for('view_feedbacks') }}">Feedback Logs</a></li>
+            <li><a href="{{ url_for('view_memory') }}">Corrections</a></li>
+            <li><a href="{{ url_for('home') }}">Back to Bot</a></li>
+        </ul>
+    </aside>
+
+    <main class="dashboard-content">
+        <header>
+            <h1>Add New Training Sample</h1>
+            <p>Provide a user prompt and the assistant's expected response.</p>
+        </header>
+
+        <form method="POST" class="styled-form">
+            <label for="user">User Message:</label>
+            <textarea name="user" id="user" rows="4" placeholder="E.g. What programs does RMU offer?" required></textarea>
+
+            <label for="bot">Assistant Response:</label>
+            <textarea name="bot" id="bot" rows="6" placeholder="E.g. RMU offers BSc in Nautical Science, Marine Engineering, etc..." required></textarea>
+
+            <button type="submit" class="btn">Add to Dataset</button>
+        </form>
+    </main>
+</div>
+</body>
+</html>

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Training Dataset Manager</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='admin.css') }}">
+</head>
+<body>
+<div class="admin-container">
+    <aside class="sidebar">
+        <h2>Admin Panel</h2>
+        <ul>
+            <li><a href="{{ url_for('admin_dashboard') }}">Dashboard</a></li>
+            <li><a href="{{ url_for('view_qa') }}" class="active">Training Dataset</a></li>
+            <li><a href="{{ url_for('view_chat_history') }}">Chat History</a></li>
+            <li><a href="{{ url_for('upload_dataset') }}" >Upload Training Data</a></li>
+            <li><a href="{{ url_for('view_feedbacks') }}">Feedback Logs</a></li>
+            <li><a href="{{ url_for('view_memory') }}">Corrections</a></li>
+            <li><a href="{{ url_for('home') }}">Back to Bot</a></li>
+        </ul>
+    </aside>
+
+    <main class="dashboard-content">
+        <header>
+            <h1>Training Dataset Manager</h1>
+            <a href="{{ url_for('add_qa') }}" class="btn">Add New Conversation</a>
+        </header>
+
+        <br><br>
+        <div style="margin-bottom: 20px;">
+            <input type="text" id="qa-search" placeholder="🔍 Search Questions or Answers..." style="padding: 10px; width: 100%; border-radius: 8px; border: 1px solid #ccc;">
+        </div>
+        
+        <table id="qa-table">
+            <thead>
+                <tr>
+                    <th onclick="sortTable(0)">#</th>
+                    <th onclick="sortTable(1)">User Message ▲▼</th>
+                    <th onclick="sortTable(2)">Assistant Response ▲▼</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for convo in qas %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ convo.messages[0].content }}</td>
+                    <td>{{ convo.messages[1].content }}</td>
+                    <td>
+                        <a href="{{ url_for('edit_qa', qa_id=loop.index0) }}">Edit</a> |
+                        <a href="{{ url_for('delete_qa', qa_id=loop.index0) }}" onclick="return confirm('Delete this conversation?')">Delete</a>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        
+    </main>
+</div>
+
+<script>
+    // SEARCH Filter
+    document.getElementById('qa-search').addEventListener('input', function() {
+        const filter = this.value.toLowerCase();
+        const rows = document.querySelectorAll('#qa-table tbody tr');
+    
+        rows.forEach(row => {
+            const question = row.cells[1].innerText.toLowerCase();
+            const answer = row.cells[2].innerText.toLowerCase();
+            if (question.includes(filter) || answer.includes(filter)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    });
+    
+    // COLUMN SORT
+    function sortTable(colIndex) {
+        const table = document.getElementById('qa-table');
+        const rows = Array.from(table.rows).slice(1);
+        const ascending = table.getAttribute('data-sort-asc') !== 'true';
+    
+        rows.sort(function(a, b) {
+            const aText = a.cells[colIndex].innerText.trim().toLowerCase();
+            const bText = b.cells[colIndex].innerText.trim().toLowerCase();
+            return ascending ? aText.localeCompare(bText) : bText.localeCompare(aText);
+        });
+    
+        rows.forEach(row => table.tBodies[0].appendChild(row));
+    
+        table.setAttribute('data-sort-asc', ascending);
+    }
+    </script>
+    
+</body>
+</html>
